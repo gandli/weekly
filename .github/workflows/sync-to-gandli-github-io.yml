@@ -1,0 +1,44 @@
+name: Sync Docs to gandli.github.io
+
+on:
+  push:
+    paths:
+      - "docs/**"
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout weekly repository
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Setup Git
+        run: |
+          git config --global user.name 'gandli'
+          git config --global user.email 'gandli@qq.com'
+
+      - name: Copy docs to temporary directory
+        run: |
+          mkdir temp
+          cp -r docs/* temp/
+
+      - name: Checkout gandli.github.io repository
+        uses: actions/checkout@v2
+        with:
+          repository: gandli/gandli.github.io
+          token: ${{ secrets.GITHUB_TOKEN }}
+          path: gandli.github.io
+
+      - name: Copy docs to gandli.github.io/content/weekly
+        run: |
+          cp -r temp/* gandli.github.io/content/weekly/
+
+      - name: Commit and push changes
+        run: |
+          cd gandli.github.io
+          git add content/weekly
+          git commit -m 'Sync docs from weekly repository'
+          git push origin main
